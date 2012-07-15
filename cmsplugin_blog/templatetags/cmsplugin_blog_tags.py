@@ -63,3 +63,14 @@ def admin_helpers(context):
         'use_missing': 'missing' in settings.INSTALLED_APPS,
     })
     return context
+
+
+@register.inclusion_tag('cmsplugin_blog/last_posts_links_snippet.html', takes_context=True)
+def render_last_posts(context):
+    request = context["request"]
+    language = get_language_from_request(request)
+    kw = get_translation_filter_language(Entry, language)
+    return {
+        'posts': Entry.published.filter(**kw),
+        'request': request
+    }
