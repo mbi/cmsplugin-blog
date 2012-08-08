@@ -15,6 +15,28 @@ from simple_translation.utils import get_translation_filter_language
 
 register = template.Library()
 
+
+@register.inclusion_tag('cmsplugin_blog/blognav.html', takes_context=True)
+def blog_nav(context, entry):
+    request = context["request"]
+    language =  get_language_from_request(request)
+    kw = get_translation_filter_language(Entry, language)
+    try:
+        previous_entry = entry.get_previous_by_pub_date(**kw)
+    except Entry.DoesNotExist:
+        previous_entry = None
+    try:
+        next_entry = entry.get_next_by_pub_date(**kw)
+    except Entry.DoesNotExist:
+        next_entry = None
+
+    return dict(
+        previous_entry=previous_entry,
+        next_entry=next_entry,
+        request=request
+    )
+
+
 @register.inclusion_tag('cmsplugin_blog/month_links_snippet.html', takes_context=True)
 def render_month_links(context):
     request = context["request"]
@@ -33,7 +55,6 @@ def render_month_links(context):
                 num_posts = Entry.published.filter(**kw).filter(pub_date__year=year, pub_date__month=m_dt.month).count()
                 months.append((m_dt, num_posts))
             years.append((y_dt, months))
-        print years
         cache.set('blog_pub_dates_%s' % language, years, 60*60)
     return {
         'dates': Entry.published.filter(**kw).dates('pub_date', 'month'),

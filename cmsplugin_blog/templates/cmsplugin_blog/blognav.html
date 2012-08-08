@@ -1,0 +1,10 @@
+{% load simple_translation_tags  i18n %}
+<nav class="blog_nav">
+    <a class="blog_button button" href="{% url blog_archive_index %}">&lt;&lt; blog</a>
+    {% if previous_entry %}
+    <a title="{% with previous_entry|get_preferred_translation_from_request:request as title %}{{ title }}{% endwith %}" class="prev_blog_button blog_button button" href="{{previous_entry.get_absolute_url}}">&lt; {% trans "previous article" %}</a>
+    {% endif %}
+    {% if next_entry %}
+    <a title="{% with next_entry|get_preferred_translation_from_request:request as title %}{{ title }}{% endwith %}" class="next_blog_button blog_button button" href="{{next_entry.get_absolute_url}}">{% trans "next article" %} &gt;</a>
+    {% endif %}
+</nav>
