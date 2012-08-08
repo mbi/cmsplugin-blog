@@ -2,8 +2,9 @@ import copy, datetime
 from django.conf import settings
 from django import template
 from django.contrib.auth import models as auth_models
-
+from django.db.models import Count
 from tagging.models import Tag
+from django.core.cache import cache
 
 from cms.utils import get_language_from_request
 from cmsplugin_blog.models import Entry, EntryTitle
@@ -19,8 +20,24 @@ def render_month_links(context):
     request = context["request"]
     language = get_language_from_request(request)
     kw = get_translation_filter_language(Entry, language)
+    y_dts = Entry.published.filter(**kw).dates('pub_date', 'year')
+    years = cache.get('blog_pub_dates_%s' % language)
+    #import ipdb; ipdb.set_trace()
+    if years is None:
+        years = list()
+        for y_dt in y_dts:
+            months = list()
+            year = y_dt.year
+            m_dts = Entry.published.filter(**kw).filter(pub_date__year=year).dates('pub_date', 'month')
+            for m_dt in m_dts:
+                num_posts = Entry.published.filter(**kw).filter(pub_date__year=year, pub_date__month=m_dt.month).count()
+                months.append((m_dt, num_posts))
+            years.append((y_dt, months))
+        print years
+        cache.set('blog_pub_dates_%s' % language, years, 60*60)
     return {
         'dates': Entry.published.filter(**kw).dates('pub_date', 'month'),
+        'years': years
     }
 
 @register.inclusion_tag('cmsplugin_blog/tag_links_snippet.html', takes_context=True)
