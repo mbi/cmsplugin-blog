@@ -103,7 +103,7 @@ class EntryDateDetailView(DateDetailView):
 class EntryArchiveIndexView(ArchiveIndexView):
     date_field = 'pub_date'
     allow_empty = True
-    paginate_by = 15
+    paginate_by = 10
     template_name_field = 'template'
     queryset = Entry.objects.all()
 
